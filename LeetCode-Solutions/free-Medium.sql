@@ -4,95 +4,6 @@ create database Medium;
 
 use Medium;
 
--- 176
-Create table
-    If Not Exists Employee
-(
-    id     int,
-    salary int
-);
-
-Truncate table Employee;
-insert into Employee (id, salary)
-values ('1', '100');
-insert into Employee (id, salary)
-values ('2', '200');
-insert into Employee (id, salary)
-values ('3', '300');
-
--- 直接找最大值的最大值
-SELECT MAX(salary) as 'SecondHighestSalary'
-FROM Employee
-WHERE salary < (SELECT MAX(salary)
-                FROM Employee);
-
-select distinct salary
-from Employee
-order by salary
-limit 1 offset 1;
-
-
-
-select ifnull(
-               (select distinct salary
-                from Employee
-                order by salary
-                limit 1 offset 1),
-               null
-           ) as 'SecondHighestSalary';
-
--- 简化版:
-select (select distinct salary
-        from Employee
-        order by salary
-        limit 1 offset 1) as 'SecondHighestSalary';
-
-
--- 177
-CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
-    DETERMINISTIC
-BEGIN
-    SET N := N - 1;
-    RETURN (
-        # Write your MySQL query statement below.
-        SELECT DISTINCT salary
-        FROM Employee
-        ORDER BY salary DESC
-        LIMIT 1 OFFSET N);
-END;
-SELECT getNthHighestSalary(2);
-
-
--- 178
-Create table If Not Exists Scores
-(
-    id    int,
-    score DECIMAL(3, 2)
-);
-Truncate table Scores;
-insert into Scores (id, score)
-values ('1', '3.5');
-insert into Scores (id, score)
-values ('2', '3.65');
-insert into Scores (id, score)
-values ('3', '4.0');
-insert into Scores (id, score)
-values ('4', '3.85');
-insert into Scores (id, score)
-values ('5', '4.0');
-insert into Scores (id, score)
-values ('6', '3.65');
-
-SELECT s.score
-FROM Scores s
-ORDER BY s.score DESC;
-
-SELECT a.score,
-       (SELECT COUNT(DISTINCT b.score)
-        FROM Scores b
-        WHERE b.score >= a.score) AS 'rank'
-FROM Scores a
-ORDER BY score DESC;
 
 
 -- 180
@@ -130,7 +41,7 @@ WHERE l1.id - l2.id = 1
 
 
 -- 泛化版本
-SELECT DISTINCT Num AS ConsecutiveNums
+SELECT DISTINCT Num AS 'ConsecutiveNums'
 FROM (SELECT Num
       FROM (SELECT Id,
                    Num,
