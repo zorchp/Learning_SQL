@@ -5,50 +5,6 @@ create database Medium;
 use Medium;
 
 
--- 180
-Create table If Not Exists Logs
-(
-    id  int,
-    num int
-);
-Truncate table Logs;
-insert into Logs (id, num)
-values ('1', '1');
-insert into Logs (id, num)
-values ('2', '1');
-insert into Logs (id, num)
-values ('3', '1');
-insert into Logs (id, num)
-values ('4', '2');
-insert into Logs (id, num)
-values ('5', '1');
-insert into Logs (id, num)
-values ('6', '2');
-insert into Logs (id, num)
-values ('7', '2');
-
-
-SELECT DISTINCT l1.num ConsecutiveNums
-FROM Logs l1
-         CROSS JOIN Logs l2
-         CROSS JOIN Logs l3
-WHERE l1.num = l2.num
-  AND l2.num = l3.num
-  AND l1.id = l2.id - 1
-  AND l2.id = l3.id - 1;
-
-
--- 泛化版本
-SELECT DISTINCT Num ConsecutiveNums
-FROM (SELECT Id,
-             Num,
-             ROW_NUMBER() OVER (ORDER BY Id) -
-             ROW_NUMBER() OVER (PARTITION BY Num ORDER BY Id) AS tmp
-      FROM Logs) Sub
-GROUP BY Num, tmp
-HAVING COUNT(1) >= 3;
-
-
 -- 184
 DROP TABLE Employee;
 Create table If Not Exists Employee
@@ -80,14 +36,9 @@ values ('1', 'IT');
 insert into Department (id, name)
 values ('2', 'Sales');
 
--- 先找分部门(GROUP BY)的最大薪水
-SELECT e.departmentId did, MAX(e.salary) mx
-FROM Employee e
-GROUP BY e.departmentId;
-
 SELECT d.name AS 'Department', e.name AS 'Employee', e.salary AS 'Salary'
 FROM Employee e
-         LEFT JOIN Department d on e.departmentId = d.id
+         JOIN Department d ON e.departmentId = d.id
 WHERE (e.departmentId, e.salary) IN (SELECT e.departmentId, MAX(e.salary)
                                      FROM Employee e
                                      GROUP BY e.departmentId);
@@ -120,7 +71,8 @@ GROUP BY a.player_id;
 
 -- 再次登录的用户数量
 SELECT ROUND(COUNT(a.player_id) /
-             (SELECT COUNT(DISTINCT player_id) FROM Activity), 2) AS 'fraction'
+             (SELECT COUNT(DISTINCT player_id)
+              FROM Activity), 2) AS 'fraction'
 FROM Activity a
          JOIN (SELECT a.player_id     pid,
                       MIN(event_date) first
@@ -134,8 +86,9 @@ SELECT ROUND(AVG(a.player_id IS NOT NULL), 2) AS 'fraction'
 FROM (SELECT player_id, MIN(event_date) AS login
       FROM Activity
       GROUP BY player_id) tmp
-         LEFT JOIN Activity a ON tmp.player_id = a.player_id
-    AND DATEDIFF(a.event_date, tmp.login) = 1;
+         LEFT JOIN Activity a
+                   ON tmp.player_id = a.player_id
+                       AND DATEDIFF(a.event_date, tmp.login) = 1;
 
 
 -- 570
@@ -171,7 +124,8 @@ FROM (SELECT e.managerId
       FROM Employee e
       GROUP BY e.managerId
       HAVING COUNT(e.managerId) >= 5) tmp
-         JOIN Employee e ON e.id = tmp.managerId;
+   , Employee e
+WHERE e.id = tmp.managerId;
 
 
 -- 585
